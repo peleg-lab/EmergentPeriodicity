@@ -61,8 +61,9 @@ def main():
         parser.add_argument('--no_refrac', dest='no_refrac', action='store_true')
         parser.add_argument('--cutoff_seconds', "-c", type=float, required=False)
         parser.add_argument('--time_step_size', type=float, required=False)
-        parser.add_argument('--folder', type=str, required=True)
+        parser.add_argument('--folder', type=str, required=False)
         parser.set_defaults(cutoff_seconds=0.0)
+        parser.set_defaults(folder='simulation_and_theory_results/simulation')
         parser.set_defaults(epsilon_lower=0.0)
         parser.set_defaults(epsilon_upper=1)
         parser.set_defaults(time_step_size=0.1)
@@ -92,7 +93,7 @@ def main():
         simulations = setup_simulations(params)
         experiment_results = run_simulations(simulations, use_processes=use_processes)
         if DUMP_DATA:
-            pickle_results(experiment_results, now, folder='data/simulation')
+            pickle_results(experiment_results, now, folder=folder)
     print("done")
 
 
