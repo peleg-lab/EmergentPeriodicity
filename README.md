@@ -23,7 +23,7 @@ For a list of customizable flags, please run **`python run.py -h`
 **`python run.py`** runs a simulation with the default parameters.
 
 ### Output:
-In the folder *simulation_and_theory_results* there will be a pickle file named to match the density and beta parameters you provided. In here are dictionaries mapping each firefly to its respective a) flash time series (0s and 1s), b) voltage time series (continuous variable between 0 and 1), c) times of flashes (discrete values), d) positions at each itme step (discrete values), which can all be viewed by loading and unpickling the object.
+In the folder *simulation_and_theory_results/simulation* there will be a pickle file named to match the density and beta parameters you provided. In here are dictionaries mapping each firefly to its respective a) flash time series (0s and 1s), b) voltage time series (continuous variable between 0 and 1), c) times of flashes (discrete values), d) positions at each itme step (discrete values), which can all be viewed by loading and unpickling the object.
 
 Simulation.py and Firefly.py are objects used by run.py to instantiate and carry out the logic of the simulation. 
 
