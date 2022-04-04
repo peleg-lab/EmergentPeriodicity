@@ -16,7 +16,7 @@ The complete list of required packages provided in *requirements.txt*, which you
 ## Model usage:
 Default parameters are already set up. To further set up or change parameters for the simulation, a number of flags can be set. Free parameters of the model discussed in the paper:
 - `n`: Number of fireflies in arena (default: `20`)
-- `beta': Donation provided by any one flash (default: `0.2`)
+- `beta`: Donation provided by any one flash (default: `0.2`)
 
 For a list of customizable flags, please run **'python run.py -h'
 
