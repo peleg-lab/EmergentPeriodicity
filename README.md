@@ -27,3 +27,6 @@ In the folder *simulation_and_theory_results/simulation* there will be a pickle 
 
 Simulation.py and Firefly.py are objects used by run.py to instantiate and carry out the logic of the simulation. 
 
+Inside the data/experiment folder are the experimental datasets used as input for the model. The envelope_01ff.csv file describes the probability of any one firefly (left column) to choose a particular interflash interval in seconds (right column) and the other files represent the experimentally sampled distributions of interburst intervals in seconds for each of the surveyed densities. 
+
+Inside the simulation_and_theory_results folder are results from simulations and from theoretical calculations. The simulation results are structured like the experimental data, which mean they are lists of interburst intervals, and the theoretical results are like the envelope file in that they are probabilities of interburst intervals in seconds.
