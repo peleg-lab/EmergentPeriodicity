@@ -18,7 +18,7 @@ Default parameters are already set up. To further set up or change parameters fo
 - `n`: Number of fireflies in arena (default: `20`)
 - `beta`: Donation provided by any one flash (default: `0.2`)
 
-For a list of customizable flags, please run **'python run.py -h'
+For a list of customizable flags, please run **`python run.py -h`
 
 **`python run.py`** runs a simulation with the default parameters.
 
