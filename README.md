@@ -15,7 +15,7 @@ Inside the theory_results folder are results from theoretical calculations. They
 #### Simulation Results:
 Inside the *simulation_results* folder are results used for Fig. 2 from simulations at the optimized beta value. These take the form of distributions of inter-burst intervals across 100 trials of the simulation at each of these beta values. Values are in seconds. Additionally, in this folder you can find pickled dictionaries of data from any one output of the simulation you may run.
 
-## Main requirements (versions tested on):
+## Simulation Main requirements (versions tested on):
 - Python 3.7
 - NumPy 1.22.1
 - scipy 1.17.1
