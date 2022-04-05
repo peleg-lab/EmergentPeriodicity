@@ -18,7 +18,7 @@ from scipy.signal import find_peaks, argrelextrema, argrelmax
 
 
 TSTAR_RANGE = 100
-with open('data/experimental/ibs01ff.csv', newline='') as f:
+with open('experimental_data/experimental/ibs01ff.csv', newline='') as f:
     reader = csv.reader(f)
     data = list(reader)
 
@@ -218,7 +218,7 @@ def plots(d, name, measurement_type):
 
 
 def plot_spiketimes(group, name):
-    plots(group, 'data/simulation', name)
+    plots(group, 'simulation_results', name)
 
 
 def spike_variance(exp_results):
@@ -303,7 +303,7 @@ def spike_analysis(exp_results, argv):
     x = []
     y = []
     y_maybes = []
-    datafile = 'data/experimental/ibs20ff.csv'
+    datafile = 'experimental_data/experimental/ibs20ff.csv'
     with open(datafile, 'r') as csvfile:
         plots = csv.reader(csvfile, delimiter=',')
         for i, row in enumerate(plots):
@@ -320,7 +320,7 @@ def load_pickles(ff_count):
         ff = '05'
     else:
         ff = ff_count
-    data_path = 'data/simulation/{}ff.pickle/'.format(ff)
+    data_path = 'simulation_results/{}ff.pickle/'.format(ff)
 
     with open(data_path + 'beta_sweep_swarm.pickle', 'rb') as f_g:
         d = pickle.load(f_g)
@@ -351,7 +351,7 @@ def spike_analysis_diff(ff_count):
     x = []
     y = []
     y_maybes = []
-    datafile = 'data/experimental/ibs{}ff.csv'.format(ff_count, ff_count)
+    datafile = 'experimental_data/experimental/ibs{}ff.csv'.format(ff_count, ff_count)
     with open(datafile, 'r') as csvfile:
         plots = csv.reader(csvfile, delimiter=',')
         for i, row in enumerate(plots):
@@ -442,7 +442,7 @@ def spike_analysis_from_local(ff_count, ax, t):
     x = []
     y = []
     y_maybes = []
-    datafile = 'data/experimental/ibs{}ff.csv'.format(ff_count, ff_count)
+    datafile = 'experimental_data/experimental/ibs{}ff.csv'.format(ff_count, ff_count)
     with open(datafile, 'r') as csvfile:
         plots = csv.reader(csvfile, delimiter=',')
         for i, row in enumerate(plots):

@@ -212,7 +212,7 @@ class Simulation:
         else:
             end = '.png'
         if not path:
-            save_string = 'data/{}_{}agents_{}x{}_beta={}_Tb={}_k={}_steps={}_{}distribution{}_obstacles{}'.format(
+            save_string = 'simulation_results/{}_{}agents_{}x{}_beta={}_Tb={}_k={}_steps={}_{}distribution{}_obstacles{}'.format(
                 plot_type,
                 self.total_agents,
                 self.n, self.n,
@@ -240,26 +240,6 @@ class Simulation:
         )
         return save_string
 
-    def save_time_series(self, now, instance, path=None):
-        bursts_at_each_timestep = self.get_burst_data()
-        path = '/Users/om/Desktop/school/Chaotic_Dynamics'
-        save_string = self.set_save_string('burst_dict{}'.format(instance), now, path)
-        with open(save_string, 'wb') as f:
-            pickle.dump(bursts_at_each_timestep, f, pickle.HIGHEST_PROTOCOL)
-
-    def save_voltage_trajectories(self, now, instance):
-        for ff in self.firefly_array:
-            filename = '/Users/om/Desktop/school/Chaotic_Dynamics/{}_beta_ff{}_in_sim_with_{}_voltages.txt'.format(
-                self.beta,
-                ff.number,
-                len(self.firefly_array))
-            to_save = {}
-            for i, v in enumerate(ff.voltage_instantaneous):
-                to_save[i*self.timestepsize] = v
-            voltage_trajectory = np.array(list(to_save.items()))
-            with open(filename, 'w') as f:
-                np.savetxt(f, voltage_trajectory)
-
     def plot_bursts(self, now, instance, write_gif=False, show_gif=False, shared_ax=None, last_highest=0):
         """Plot the flash bursts over time"""
         assert self.has_run, "Plot cannot render until the simulation has been run!"
@@ -285,7 +265,7 @@ class Simulation:
             ax.set_ylim([0.0, 20])
             ax.set_ylabel('Number of flashes')
             plt.title('Time series {}ff'.format(self.total_agents))
-            save_string = self.set_save_string('flashplot_no_refrac_{}'.format(instance), now, path='time_series_plots/')
+            save_string = self.set_save_string('flashplot_no_refrac_{}'.format(instance), now, path='simulation_results/')
 
             if write_gif:
                 plt.savefig(save_string)
@@ -297,7 +277,7 @@ class Simulation:
                            label=label, color=color)
 
         if not shared_ax:
-            save_string = self.set_save_string('flashplot_{}'.format(instance), now, path='time_series_plots/')
+            save_string = self.set_save_string('flashplot_{}'.format(instance), now, path='simulation_results/')
 
             if write_gif:
                 plt.savefig(save_string)
@@ -356,62 +336,6 @@ class Simulation:
             ax.plot(xs, [f + i for f in ff.voltage_instantaneous], color=colormap.colors[i])
             ax.plot(x_s, [int(f) + i for f in ff._get_flashed_at_this_step()], color=colormap.colors[i], alpha=0.5)
 
-    @staticmethod
-    def setup_color_legend(axis, use_kuramato=True, use_integrate_and_fire=False):
-        """Set the embedded color axis for the 2d correlated random walk that shows color-phase relations."""
-        if use_kuramato:
-            steps = 360
-
-            color_dict = {}
-            cmap_seed = matplotlib.cm.get_cmap('hsv', steps)
-            norm = matplotlib.colors.Normalize(0, steps)
-            display_axes = axis.inset_axes(bounds=[0.79, 0.01, 0.21, 0.01])
-
-            cb = matplotlib.colorbar.ColorbarBase(display_axes,
-                                                  cmap=matplotlib.cm.get_cmap('hsv', steps),
-                                                  norm=norm,
-                                                  orientation='horizontal')
-            cb.outline.set_visible(False)
-            x_formatter = FixedFormatter([
-                "0°", "90°", "180°", "270°", "360°"])
-            x_locator = FixedLocator([0, 90, 180, 270, 360])
-            display_axes.xaxis.tick_top()
-            display_axes.tick_params(axis="x", labelsize=6)
-            display_axes.set_xlim([0.0, 360.0])
-            display_axes.xaxis.set_major_formatter(x_formatter)
-            display_axes.xaxis.set_major_locator(x_locator)
-
-            cmap = matplotlib.colors.ListedColormap(cmap_seed(np.tile(np.linspace(0, 1, steps), 2)))
-            for i, color in enumerate(cmap.colors):
-                color_dict[i] = color
-        else:
-            steps = 100
-
-            color_dict = {}
-            cmap_seed = matplotlib.cm.get_cmap('YlGnBu', steps)
-            norm = matplotlib.colors.Normalize(0, steps)
-            display_axes = axis.inset_axes(bounds=[0.79, 0.01, 0.21, 0.01])
-
-            cb = matplotlib.colorbar.ColorbarBase(display_axes,
-                                                  cmap=matplotlib.cm.get_cmap('YlGnBu', steps),
-                                                  norm=norm,
-                                                  orientation='horizontal')
-            cb.outline.set_visible(False)
-            x_formatter = FixedFormatter([
-                "0", ".2", ".4", ".6", ".8", "1.0"])
-            x_locator = FixedLocator([0, 20, 40, 60, 80, 100])
-            display_axes.xaxis.tick_top()
-            display_axes.tick_params(axis="x", labelsize=6)
-            display_axes.set_xlim([0.0, 100.0])
-            display_axes.xaxis.set_major_formatter(x_formatter)
-            display_axes.xaxis.set_major_locator(x_locator)
-
-            cmap = matplotlib.colors.ListedColormap(cmap_seed(np.tile(np.linspace(0, 1, steps), 2)))
-            for i, color in enumerate(cmap.colors):
-                color_dict[i] = color
-
-        return color_dict
-
     def calc_interburst_distribution(self):
         """Calculate the distribution of interburst intervals for all individuals in a simulation.
 
@@ -438,7 +362,7 @@ class Simulation:
 
         return flat_interburst_distribution
 
-    def temporal_interburst_dist(self, thresh=None):
+    def temporal_interburst_dist(self):
         """Returns dict of inter-burst intervals over time."""
         starts_of_bursts = {}
         for firefly in self.firefly_array:
@@ -467,8 +391,7 @@ class Simulation:
         for index in range(0, number_of_bursts):
             starting_points = np.array([burst[index] for burst in list(starts_of_bursts.values())])
             collective_burst_starts.append(np.mean(starting_points[starting_points < 1000000]))
-        collective_interburst_distribution = np.array([collective_burst_starts[i + 1] - collective_burst_starts[i]
-                                                       for i in range(len(collective_burst_starts) - 1)])
+
         temporal_interbursts = {}
         for i in range(len(collective_burst_starts) - 1):
             interburst = collective_burst_starts[i + 1] - collective_burst_starts[i]
@@ -495,13 +418,10 @@ class Simulation:
             longest_list = max(list(starts_of_bursts.values()), key=lambda l: len(l))
             number_of_bursts = len(longest_list)
 
-            # TODO: Examine this more thoroughly
-            # pad shorties
             for k, burst in starts_of_bursts.items():
                 if len(burst) < number_of_bursts:
                     starts_of_bursts[k].extend([float("inf")] * (number_of_bursts - len(burst)))
 
-            # TODO: Examine this more thoroughly
             collective_burst_starts = []
             for index in range(0, number_of_bursts):
                 starting_points = np.array([burst[index] for burst in list(starts_of_bursts.values())])
@@ -526,6 +446,62 @@ class Simulation:
             cid = np.array(_collective_interburst_distribution)
 
             return cid
+
+    def peak_variances(self, thresh):
+        """Finds peaks and the variances of the burst regions around them.
+
+        :returns dict of peak locations
+        :returns dict of peak heights
+        :returns int of step of last tallest peak
+        :returns dict of variances"""
+        _prominences = {
+            1: 1.0,
+            5: 2.0,
+            10: 3.0,
+            15: 4.0,
+            20: 5.0
+        }
+        _x = self.get_burst_data()
+        try:
+            peaks_of_x = find_peaks(list(_x.values())[thresh:],
+                                    height=2.0, # prominence_threshold,
+                                    distance=50
+                                    )
+            if len(peaks_of_x[0]) < 5:
+                raise RuntimeError('Not enough peaks')
+        except RuntimeError:
+            try:
+                peaks_of_x = find_peaks(list(_x.values())[thresh:],
+                                        prominence=2.0,
+                                        distance=50
+                                        )
+                if len(peaks_of_x[0]) < 5:
+                    raise RuntimeError('Not enough peaks')
+            except RuntimeError:
+                peaks_of_x = find_peaks(list(_x.values())[thresh:],
+                                        prominence=1.0,
+                                        distance=50
+                                        )
+
+        peaks = [peak * self.timestepsize for peak in peaks_of_x[0]]
+        try:
+            peak_heights = [peak for peak in peaks_of_x[1]['peak_heights']]
+        except KeyError:
+            peak_heights = [peak for peak in peaks_of_x[1]['prominences']]
+        mids = [(peaks[i + 1] + peaks[i]) / 2 for i in range(len(peaks) - 1)]
+        all_flashes = []
+        for ff in self.firefly_array:
+            all_flashes.extend([i for i, val in enumerate(ff.flashed_at_this_step[thresh:]) if val])
+        all_flashes = sorted(all_flashes)
+        variances = {}
+        for i in range(len(mids) - 1):
+            variance_bucket = [f for f in all_flashes if mids[i] <= f * self.timestepsize < mids[i + 1]]
+            variances[i] = math.sqrt(np.var(variance_bucket))
+        last_high_step = 0
+        for e in variances.keys():
+            if variances[e] > 30:
+                last_high_step = mids[e] * 10
+        return peaks, peak_heights, last_high_step, variances
 
     def get_burst_data(self):
         """Male bursts.

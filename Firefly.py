@@ -109,35 +109,46 @@ class Firefly:
         self.nat_frequency = 1 / self.phrase_duration
 
     def set_ready(self, step):
+        """Update whether the firefly can flash or not."""
         if step - self.last_flashed_at > self.refractory_period:
             self.ready = True
 
     def unset_ready(self):
+        """Update whether the firefly can flash or not."""
         self.ready = False
 
     def get_refractory_period(self):
+        """Extract refractory period.
+
+           returns: length of refractory period
+        """
+
         if self.no_refrac:
             return 0
         else:
             return self.min_refractory_period / self.timestepsize
 
     def sample_nf(self):
+        """Returns new number of flashes for individual, sampled from data."""
+        experimental_distribution = [(1/18), (2/18), (11/18), (3/18), (1/18)]
         if self.simple:
             return 1
         else:
-            return int(np.random.choice([2, 3, 4, 5, 6], p=[(1/18), (2/18), (11/18), (3/18), (1/18)]))
+            return int(np.random.choice([2, 3, 4, 5, 6], p=experimental_distribution))
 
     @staticmethod
     def sample_dt():
-        ps = [(1 / 76), (3 / 76), (6 / 76), (4 / 76), (19 / 76), (13 / 76), (14 / 76),
+        """Returns new flash length for individual, sampled from data."""
+        experimental_ps = [(1 / 76), (3 / 76), (6 / 76), (4 / 76), (19 / 76), (13 / 76), (14 / 76),
               (11 / 76), (2 / 76), (1 / 76), (1 / 76), 0, 0, 0, 0, 0, 0, 0, (1 / 76)]
-        dt = int(np.random.choice(np.arange(1, 20, 1), p=ps))
+        dt = int(np.random.choice(np.arange(1, 20, 1), p=experimental_ps))
         return dt / 6
 
     @staticmethod
     def sample_ct():
-        ps = [(6 / 43), (10 / 43), (12 / 43), (7 / 43), (2 / 43), (2 / 43), (1 / 43), (0 / 43), (2 / 43), (1 / 43)]
-        ct = int(np.random.choice(np.arange(26, 36, 1), p=ps))
+        """Returns new interflash interval for individual, sampled from data."""
+        experimental_ps = [(6 / 43), (10 / 43), (12 / 43), (7 / 43), (2 / 43), (2 / 43), (1 / 43), (0 / 43), (2 / 43), (1 / 43)]
+        ct = int(np.random.choice(np.arange(26, 36, 1), p=experimental_ps))
         return ct / 6
 
     def get_phrase_duration(self):
@@ -246,6 +257,7 @@ class Firefly:
             self.direction[current_step] = -self.direction[current_step]
 
     def flash(self, t):
+        """Logic for what goes on in a flash."""
         self.last_flashed_at = t
         self.flashed_at_this_step[t] = True
         self.steps_with_flash.add(t)
@@ -268,6 +280,7 @@ class Firefly:
             self.ends_of_bursts.append(t)
 
     def set_dvt(self, t, in_burst=False):
+        """Updates voltage at time t based on Eq.2"""
         prev_voltage = self.voltage_instantaneous[t - 1]
         if not in_burst:
             tc = self.quiet_period * self.timestepsize
