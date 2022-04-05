@@ -18,20 +18,22 @@ Default parameters are already set up. To further set up or change parameters fo
 - `n`: Number of fireflies in arena (default: `20`)
 - `beta`: Donation provided by any one flash (default: `0.2`)
 
-For a list of customizable flags, please run **`python run.py -h`
+For a list of customizable flags, please run **`python run.py -h`**
 
 **`python run.py`** runs a simulation with the default parameters.
 
 ### Output:
-In the folder *simulation_and_theory_results/simulation* there will be a pickle file named to match the density and beta parameters you provided. In here are dictionaries mapping each firefly to its respective a) flash time series (0s and 1s), b) voltage time series (continuous variable between 0 and 1), c) times of flashes (discrete values), d) positions at each itme step (discrete values), which can all be viewed by loading and unpickling the object.
+In the folder *simulation_results* folder there will be a pickle file named to match the density and beta parameters you provided. In here are dictionaries mapping each firefly to its respective a) flash time series (0s and 1s), b) voltage time series (continuous variable between 0 and 1), c) times of flashes (discrete values), d) positions at each itme step (discrete values), which can all be viewed by loading and unpickling the object.
 
 
 ### Code structure
 Simulation.py and Firefly.py are objects used by run.py to instantiate and carry out the logic of the simulation. Simulation_helpers contains a few helper functions for orchestration and extracting values from the data files mentioned below.
 
-### Data
+### Experimental Data
 Inside the data/experiment folder are the experimental datasets used as input for the model. The envelope_01ff.csv file describes the probability of any one firefly (left column) to choose a particular interflash interval in seconds (right column) and the other files represent the experimentally sampled distributions of interburst intervals in seconds for each of the surveyed densities. 
 
+### Theoretical Results
+Inside the theory_results folder are results from theoretical calculations. They are structured as probabilities of each inter-burst interval over a range, just like the envelope file.
 
-### Results
-Inside the simulation_and_theory_results folder are results from simulations and from theoretical calculations. The simulation results are structured like the experimental data: they are distributions of inter-burst intervals in seconds. The theoretical results are structured as probabilities of each inter-burst interval over a range, just like the envelope file.
+### Simulation Results
+Inside the *simulation_results* folder are results used for Fig. 2 from simulations at the optimized beta value. These take the form of distributions of inter-burst intervals across 100 trials of the simulation at each of these beta values. Values are in seconds. Additionally, in this folder you can find pickled dictionaries of data from any one output of the simulation you run.

@@ -63,7 +63,7 @@ def main():
         parser.add_argument('--time_step_size', type=float, required=False)
         parser.add_argument('--folder', type=str, required=False)
         parser.set_defaults(cutoff_seconds=0.0)
-        parser.set_defaults(folder='simulation_and_theory_results/simulation')
+        parser.set_defaults(folder='simulation_results')
         parser.set_defaults(epsilon_lower=0.0)
         parser.set_defaults(epsilon_upper=1)
         parser.set_defaults(time_step_size=0.1)
