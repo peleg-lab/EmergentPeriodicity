@@ -34,4 +34,4 @@ Inside the data/experiment folder are the experimental datasets used as input fo
 
 
 ### Results
-Inside the simulation_and_theory_results folder are results from simulations and from theoretical calculations. The simulation results are structured like the experimental data, which mean they are lists of interburst intervals, and the theoretical results are like the envelope file in that they are probabilities of interburst intervals in seconds.
+Inside the simulation_and_theory_results folder are results from simulations and from theoretical calculations. The simulation results are structured like the experimental data: they are distributions of inter-burst intervals in seconds. The theoretical results are structured as probabilities of each inter-burst interval over a range, just like the envelope file.
