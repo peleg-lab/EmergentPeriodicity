@@ -1,7 +1,7 @@
 # Emergent Periodicity in Fireflies
 
 ## Overview:
-Individual fireflies show no periodicity in their flash pattern emission, drawing instead from a wide distribution of inter-flash interval timings to produce flashes. When in a collective, however, fireflies influence each other to change their flash timings, eventually reaching a steady state of synchronicity and, impressively, periodicity in their group level flash patterns. The simulation found here implements the theory presented in https://www.biorxiv.org/content/10.1101/2022.03.09.483608v1.full suggesting their interactions may follow a simple integrate-and-fire framework where flashes excite neighbors to flash faster than they would normally.
+Individual fireflies show no periodicity in their flash pattern emission, drawing instead from a wide distribution of inter-flash interval timings to produce flashes. When in a collective, however, fireflies influence each other to change their flash timings, eventually reaching a steady state of synchronicity and, impressively, periodicity in their group level flash patterns. The code found here implements the theory presented in https://www.biorxiv.org/content/10.1101/2022.03.09.483608v1.full in an agent-based model, suggesting their interactions may follow a simple integrate-and-fire framework where flashes excite neighbors to flash faster than they would normally.
 
 ## Repository structure:
 Simulation.py and Firefly.py are objects used by run.py to instantiate and carry out the logic of the simulation. simulation_helpers.py contains a few helper functions for orchestration and extracting values from the data files mentioned below.
@@ -24,7 +24,9 @@ Inside the *simulation_results* folder are results used for Fig. 2 from simulati
 
 The complete list of required packages provided in *requirements.txt*, which you can install in your environment with the command `pip install -r requirements.txt`. 
 
-## Model usage:
+## Agent-Based Model 
+
+#### Usage:
 Default parameters are already set up. To further set up or change parameters for the simulation, a number of flags can be set. Free parameters of the model discussed in the paper:
 - `n`: Number of fireflies in arena (default: `20`)
 - `beta`: Donation provided by any one flash (default: `0.2`)
