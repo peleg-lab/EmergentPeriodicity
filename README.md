@@ -26,7 +26,7 @@ For a list of customizable flags, please run **`python run.py -h`**
 In the folder *simulation_results* folder there will be a pickle file named to match the density and beta parameters you provided. In here are dictionaries mapping each firefly to its respective a) flash time series (0s and 1s), b) voltage time series (continuous variable between 0 and 1), c) times of flashes (discrete values), d) positions at each itme step (discrete values), which can all be viewed by loading and unpickling the object.
 
 
-### Repo structure:
+## Repo structure:
 Simulation.py and Firefly.py are objects used by run.py to instantiate and carry out the logic of the simulation. Simulation_helpers contains a few helper functions for orchestration and extracting values from the data files mentioned below.
 
 #### Experimental Data:
