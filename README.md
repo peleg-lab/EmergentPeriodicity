@@ -25,8 +25,13 @@ For a list of customizable flags, please run **`python run.py -h`
 ### Output:
 In the folder *simulation_and_theory_results/simulation* there will be a pickle file named to match the density and beta parameters you provided. In here are dictionaries mapping each firefly to its respective a) flash time series (0s and 1s), b) voltage time series (continuous variable between 0 and 1), c) times of flashes (discrete values), d) positions at each itme step (discrete values), which can all be viewed by loading and unpickling the object.
 
-Simulation.py and Firefly.py are objects used by run.py to instantiate and carry out the logic of the simulation. 
 
+### Code structure
+Simulation.py and Firefly.py are objects used by run.py to instantiate and carry out the logic of the simulation. Simulation_helpers contains a few helper functions for orchestration and extracting values from the data files mentioned below.
+
+### Data
 Inside the data/experiment folder are the experimental datasets used as input for the model. The envelope_01ff.csv file describes the probability of any one firefly (left column) to choose a particular interflash interval in seconds (right column) and the other files represent the experimentally sampled distributions of interburst intervals in seconds for each of the surveyed densities. 
 
+
+### Results
 Inside the simulation_and_theory_results folder are results from simulations and from theoretical calculations. The simulation results are structured like the experimental data, which mean they are lists of interburst intervals, and the theoretical results are like the envelope file in that they are probabilities of interburst intervals in seconds.
