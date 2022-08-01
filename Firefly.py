@@ -7,11 +7,9 @@ import simulation_helpers
 
 
 class Firefly:
-    #  Number, total number, theta*, thetastar_range, box dimension, number of steps,
-    #  starting distribution, whether initially fed, whether to use periodic boundary conditions
     def __init__(self, i, total, tstar, tstar_range, n, steps, r_or_u, beta, phrase_duration, epsilon_delta,
-                 use_periodic_boundary_conditions=True, use_linear=False, one_flash=False, no_refrac=False,
-                 timestepsize=0.1, cutoff='min'):
+                 timestepsize, use_periodic_boundary_conditions=True, use_linear=False, one_flash=False,
+                 no_refrac=False, obstacles=None):
         self.steps = steps
         self.simple = False
         if one_flash:
@@ -31,10 +29,23 @@ class Firefly:
         self.side_length_of_enclosure = n
         self.positionx = np.zeros(steps)
         self.positiony = np.zeros(steps)
-
+        if obstacles:
+            r_or_u = "random"
         if r_or_u == "random":
-            self.positionx[0] = random.randint(0, n)
-            self.positiony[0] = random.randint(0, n)
+            points_set = False
+            if obstacles:
+                while not points_set:
+                    success = True
+                    self.positionx[0] = random.randint(0, n)
+                    self.positiony[0] = random.randint(0, n)
+                    for obstacle in obstacles:
+                        if obstacle.contains(self.positionx[0], self.positiony[0]):
+                            success = False
+                    if success:
+                        points_set = True
+            else:
+                self.positionx[0] = random.randint(0, n)
+                self.positiony[0] = random.randint(0, n)
         else:
             uniform_x_position, uniform_y_position = simulation_helpers.get_uniform_coordinates(i, n, total)
             self.positionx[0] = uniform_x_position
@@ -58,7 +69,7 @@ class Firefly:
         self.discharging_time = self.sample_dt()
         self.voltage_threshold = 1
         self.epsilon_delta = epsilon_delta
-        self.discharging_threshold = epsilon_delta[1]
+        self.discharging_threshold = epsilon_delta[1] - 0.01
         self.charging_threshold = epsilon_delta[0]
         self.in_burst = False
         self.voltage_instantaneous = np.zeros(steps)
@@ -78,15 +89,11 @@ class Firefly:
             self.charging_time = 60
             self.discharging_time = 1
 
-        if cutoff == 'min':
-            self.cutoff = 5.6723333333333334
-        else:
-            self.cutoff = cutoff
-        self.min_refractory_period = 5.6723333333333334
+        self.min_refractory_period = 5.6723333333333334 / self.timestepsize
         self.refractory_period = self.get_refractory_period()
         if phrase_duration == "distribution":
             if self.sign == 1:
-                self.phrase_duration = simulation_helpers.get_initial_interburst_interval()
+                self.phrase_duration = simulation_helpers.draw_from_input_distribution(1) / self.timestepsize
             else:
                 # female defaults
                 self.phrase_duration = 100
@@ -109,47 +116,38 @@ class Firefly:
         self.nat_frequency = 1 / self.phrase_duration
 
     def set_ready(self, step):
-        """Update whether the firefly can flash or not."""
         if step - self.last_flashed_at > self.refractory_period:
             self.ready = True
 
     def unset_ready(self):
-        """Update whether the firefly can flash or not."""
         self.ready = False
 
     def get_refractory_period(self):
-        """Extract refractory period.
-
-           returns: length of refractory period
-        """
-
         if self.no_refrac:
             return 0
         else:
             return self.min_refractory_period / self.timestepsize
 
     def sample_nf(self):
-        """Returns new number of flashes for individual, sampled from data."""
-        experimental_distribution = [(1/18), (2/18), (11/18), (3/18), (1/18)]
         if self.simple:
             return 1
         else:
-            return int(np.random.choice([2, 3, 4, 5, 6], p=experimental_distribution))
+            return int(np.random.choice([2, 3, 4, 5, 6], p=[(1/18), (2/18), (11/18), (3/18), (1/18)]))
 
-    @staticmethod
-    def sample_dt():
-        """Returns new flash length for individual, sampled from data."""
-        experimental_ps = [(1 / 76), (3 / 76), (6 / 76), (4 / 76), (19 / 76), (13 / 76), (14 / 76),
+    def sample_dt(self):
+        # returns a value already in timesteps
+        ps = [(1 / 76), (3 / 76), (6 / 76), (4 / 76), (19 / 76), (13 / 76), (14 / 76),
               (11 / 76), (2 / 76), (1 / 76), (1 / 76), 0, 0, 0, 0, 0, 0, 0, (1 / 76)]
-        dt = int(np.random.choice(np.arange(1, 20, 1), p=experimental_ps))
-        return dt / 6
+        dt = np.random.choice(np.arange(0.1, 2, 0.1), p=ps) / 6  # values in seconds
+        dt = dt / self.timestepsize
+        return dt
 
-    @staticmethod
-    def sample_ct():
-        """Returns new interflash interval for individual, sampled from data."""
-        experimental_ps = [(6 / 43), (10 / 43), (12 / 43), (7 / 43), (2 / 43), (2 / 43), (1 / 43), (0 / 43), (2 / 43), (1 / 43)]
-        ct = int(np.random.choice(np.arange(26, 36, 1), p=experimental_ps))
-        return ct / 6
+    def sample_ct(self):
+        # returns a value already in timesteps
+        ps = [(6 / 43), (10 / 43), (12 / 43), (7 / 43), (2 / 43), (2 / 43), (1 / 43), (0 / 43), (2 / 43), (1 / 43)]
+        ct = np.random.choice(np.arange(2.6, 3.6, 0.1), p=ps) / 6  # values in seconds
+        ct = ct / self.timestepsize
+        return ct
 
     def get_phrase_duration(self):
         return self.phrase_duration
@@ -167,7 +165,8 @@ class Firefly:
 
     def update_phrase_duration(self, fastest=None):
         if fastest is None:
-            self.phrase_duration = simulation_helpers.get_initial_interburst_interval()
+            self.phrase_duration = simulation_helpers.draw_from_input_distribution(1)  # value in seconds
+            self.phrase_duration = self.phrase_duration / self.timestepsize  # value in timesteps
             self.update_quiet_period()
         else:
             self.quiet_period = fastest
@@ -257,7 +256,6 @@ class Firefly:
             self.direction[current_step] = -self.direction[current_step]
 
     def flash(self, t):
-        """Logic for what goes on in a flash."""
         self.last_flashed_at = t
         self.flashed_at_this_step[t] = True
         self.steps_with_flash.add(t)
@@ -280,22 +278,21 @@ class Firefly:
             self.ends_of_bursts.append(t)
 
     def set_dvt(self, t, in_burst=False):
-        """Updates voltage at time t based on Eq.2"""
         prev_voltage = self.voltage_instantaneous[t - 1]
         if not in_burst:
-            tc = self.quiet_period * self.timestepsize
+            tc = self.quiet_period
             td = self.discharging_time
         else:
             tc = self.charging_time
             td = self.discharging_time
         if self.is_charging:
             if self.numerator == 1:
-                dvt = (self.numerator / tc) * self.timestepsize
+                dvt = (self.numerator / tc)
             else:
-                dvt = ((self.numerator / tc) * (self.voltage_threshold - prev_voltage)) * self.timestepsize
+                dvt = ((self.numerator / tc) * (self.voltage_threshold - prev_voltage))
         else:
             if self.numerator == 1:
-                dvt = (-self.numerator / td) * self.timestepsize
+                dvt = (-self.numerator / td)
             else:
-                dvt = (-(self.numerator / td) * prev_voltage) * self.timestepsize
+                dvt = (-(self.numerator / td) * prev_voltage)
         return dvt

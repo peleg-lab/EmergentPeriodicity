@@ -24,7 +24,6 @@ BETAS = "betas"
 DBS = "databases"
 PHRASE_DURATIONS = "phrases"
 TIMESTEPSIZE = "time_step_size"
-CUTOFF = "cutoff"
 
 TRACE_KEY = 'all_paths'
 FLASH_KEY = 'all_flash_steps'
@@ -59,14 +58,12 @@ def main():
         parser.add_argument('--use_linear', dest='use_linear', action='store_true')
         parser.add_argument('--one_flash', dest='one_flash', action='store_true')
         parser.add_argument('--no_refrac', dest='no_refrac', action='store_true')
-        parser.add_argument('--cutoff_seconds', "-c", type=float, required=False)
         parser.add_argument('--time_step_size', type=float, required=False)
         parser.add_argument('--folder', type=str, required=False)
-        parser.set_defaults(cutoff_seconds=0.0)
         parser.set_defaults(folder='simulation_results')
         parser.set_defaults(epsilon_lower=0.0)
         parser.set_defaults(epsilon_upper=1)
-        parser.set_defaults(time_step_size=0.1)
+        parser.set_defaults(time_step_size=0.01)
         parser.set_defaults(no_refrac=False)
         parser.set_defaults(obstacles=False)
         parser.set_defaults(use_linear=False)
@@ -76,7 +73,7 @@ def main():
         epsilon_deltas = (args.epsilon_lower, args.epsilon_upper)
         num_list = [int(num) for num in args.num]
         params = set_constants(nao=num_list, sc=args.steps, sl=args.length, nt=args.trials, betas=beta_range,
-                               epsilon_deltas=epsilon_deltas, ts=args.time_step_size, cut=args.cutoff_seconds)
+                               epsilon_deltas=epsilon_deltas, ts=args.time_step_size)
 
         simulations = setup_simulations(params,
                                         use_obstacles=args.obstacles,
@@ -105,9 +102,6 @@ def extract_range(arglist):
             retlist = float_args
         else:
             retlist = np.arange(float_args[0], float_args[1], 0.05)
-            retlist = list(retlist)
-            retlist.extend([1.05, 1.10, 1.15 , 1.20, 1.35, 1.45, 1.55])
-            retlist = np.array(sorted(retlist))
     else:
         retlist = None
     return retlist
@@ -122,7 +116,7 @@ def pickle_results(experiment_results, now, folder):
             name = '{}density{}beta{}Tb{}_steps'.format(density, beta, distribution, v[0].steps)
         except ValueError:
             beta, sidelength, number, distribution = k
-            name = '0.078125density{}betadistributionTb20000_steps'.format(beta)
+            name = '0.078125density{}betadistributionTb200000_steps'.format(beta)
         if not os.path.isdir(folder):
             os.makedirs(folder)
         if not os.path.isdir('{}/{}ff'.format(folder, number)):
@@ -158,7 +152,7 @@ def load_pickles(program_argv):
     return experiment_results
 
 
-def set_constants(sl=None, sc=None, nao=None, nt=None, betas=None, epsilon_deltas=None, ts=None, cut=None):
+def set_constants(sl=None, sc=None, nao=None, nt=None, betas=None, epsilon_deltas=None, ts=None):
     """Set up experiment constants.
 
     :param sl: side length
@@ -171,7 +165,7 @@ def set_constants(sl=None, sc=None, nao=None, nt=None, betas=None, epsilon_delta
     :returns dict of values
     """
     if not ts:
-        timestepsize = 0.1
+        timestepsize = 0.01
     else:
         timestepsize = ts
     if not sl:
@@ -183,7 +177,7 @@ def set_constants(sl=None, sc=None, nao=None, nt=None, betas=None, epsilon_delta
     else:
         num_agent_options = nao
     if not sc:
-        step_count = 4000
+        step_count = 200000
     else:
         step_count = sc
     if not nt:
@@ -194,10 +188,7 @@ def set_constants(sl=None, sc=None, nao=None, nt=None, betas=None, epsilon_delta
         btas = [0.2]
     else:
         btas = betas
-    if cut == 0.0:
-        cutoff = 'min'
-    else:
-        cutoff = cut
+    
     epdeltas = [epsilon_deltas]
     params = {}
     thetastars = [2 * math.pi]
@@ -215,7 +206,6 @@ def set_constants(sl=None, sc=None, nao=None, nt=None, betas=None, epsilon_delta
     params[TRIALS] = num_trials
     params[E_DELTAS] = epdeltas
     params[TIMESTEPSIZE] = timestepsize
-    params[CUTOFF] = cutoff
     return params
 
 
@@ -248,7 +238,6 @@ def generate_simulations(params, use_obstacles, use_linear, one_flash, no_refrac
                                     n = params[NS]
                                     step_count = params[STEPS]
                                     timestepsize = params[TIMESTEPSIZE]
-                                    cutoff = params[CUTOFF]
                                     simulation = Simulation.Simulation(num_agents=num_agents,
                                                                        side_length=n,
                                                                        step_count=step_count,
@@ -262,8 +251,7 @@ def generate_simulations(params, use_obstacles, use_linear, one_flash, no_refrac
                                                                        one_flash=one_flash,
                                                                        use_linear=use_linear,
                                                                        no_refrac=no_refrac,
-                                                                       timestepsize=timestepsize,
-                                                                       cutoff=cutoff)
+                                                                       timestepsize=timestepsize)
                                     yield simulation
 
 

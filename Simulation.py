@@ -19,8 +19,8 @@ IS_TEST = False
 
 class Simulation:
     def __init__(self, num_agents, side_length, step_count, thetastar, coupling_strength, Tb,
-                 beta, phrase_duration, epsilon_delta, r_or_u="uniform", use_linear=False, one_flash=False,
-                 timestepsize=0.1, no_refrac=False, cutoff='min'):
+                 beta, phrase_duration, epsilon_delta,timestepsize,r_or_u="uniform", use_linear=False, one_flash=False,
+                 no_refrac=False):
         self.firefly_array = []
         self.timestepsize = timestepsize
         self.use_integrate_and_fire = True
@@ -56,12 +56,10 @@ class Simulation:
                 phrase_duration=phrase_duration,
                 epsilon_delta=epsilon_delta,
                 use_periodic_boundary_conditions=False,
+                timestepsize=0.01,
                 use_linear=use_linear,
                 one_flash=one_flash,
-                no_refrac=no_refrac,
-                timestepsize=0.1,
-                cutoff=cutoff,
-                tb=self.Tb)
+                no_refrac=no_refrac)
             )
         self.boilerplate = '{}density, {}beta, {}Tb'.format(self.total_agents /
                                                             (self.n * self.n),
@@ -92,7 +90,6 @@ class Simulation:
 
     def look(self, step):
         """Find neighbors in line of sight. Set limited to true to explore varying the FoV.
-
         Options:
         1. All-to-all adjacency matrix.
         2. Attention-limited adjacency matrix (draw a hemisphere 90 degrees to either side of direction)
@@ -338,7 +335,6 @@ class Simulation:
 
     def calc_interburst_distribution(self):
         """Calculate the distribution of interburst intervals for all individuals in a simulation.
-
         :returns: Flat list of interburst distributions
         """
         starts_of_bursts = {}
@@ -400,7 +396,6 @@ class Simulation:
 
     def swarm_interburst_dist(self,  is_one=True, is_null=False):
         """Calculate the distribution of interburst intervals for the collective bursting events.
-
         :returns: Flat list of interburst distributions
         """
         if is_one:
@@ -449,7 +444,6 @@ class Simulation:
 
     def peak_variances(self, thresh):
         """Finds peaks and the variances of the burst regions around them.
-
         :returns dict of peak locations
         :returns dict of peak heights
         :returns int of step of last tallest peak
@@ -505,7 +499,6 @@ class Simulation:
 
     def get_burst_data(self):
         """Male bursts.
-
         :returns dict of flash counts at timesteps
         """
         to_plot = {i: 0 for i in range(self.steps)}
@@ -523,3 +516,4 @@ class Simulation:
                 if x[step] is True:
                     to_plot[step] += 1
         return to_plot
+
