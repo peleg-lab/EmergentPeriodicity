@@ -17,14 +17,6 @@ from scipy.stats import gaussian_kde
 from scipy.signal import find_peaks, argrelextrema, argrelmax
 
 
-TSTAR_RANGE = 100
-with open('experimental_data/experimental/ibs01ff.csv', newline='') as f:
-    reader = csv.reader(f)
-    data = list(reader)
-
-X_NICE = [float(d[0]) for d in data]
-Y_NICE = [float(d[1]) for d in data]
-
 
 def get_uniform_coordinates(i, side_length, total):
     """Distribute a firefly at index i within a uniform distribution."""
@@ -123,7 +115,7 @@ def get_initial_interburst_interval():
 
 
 def draw_from_input_distribution(num_draws):
-    with open('data/envelope_01ff.csv', newline='') as f:
+    with open('experimental_data/experimental/envelope_01ff.csv', newline='') as f:
         reader = csv.reader(f)
         data = list(reader)
 

@@ -40,7 +40,7 @@ class Simulation:
         self.r_or_u = r_or_u
         self.tstar_seed = thetastar
         self.epsilon_delta = epsilon_delta
-        thetastars = [np.linspace(-thetastar, thetastar, simulation_helpers.TSTAR_RANGE)]
+        thetastars = [np.linspace(-thetastar, thetastar, 1)]
         self.thetastar = list(thetastars[random.randint(0, len(thetastars) - 1)])
 
         self.has_run = False
@@ -50,7 +50,7 @@ class Simulation:
         for i in range(0, self.total_agents):
             self.firefly_array.append(Firefly.Firefly(
                 i, total=self.total_agents, tstar=self.thetastar,
-                tstar_range=simulation_helpers.TSTAR_RANGE,
+                tstar_range=1,
                 n=self.n, steps=self.steps, r_or_u=self.r_or_u,
                 beta=beta,
                 phrase_duration=phrase_duration,
@@ -72,8 +72,7 @@ class Simulation:
 
     def run(self):
         """
-        Run the simulation. At each timestep, a firefly moves in relation to obstacles present and
-        experiences phase interactions, either by slightly modified Kuramato model interactions or
+        Run the simulation. 
         """
         logging = False
         for step in range(1, self.steps):
@@ -81,8 +80,6 @@ class Simulation:
                 print(step)
             if step % 5000 == 0:
                 print(step)
-            for firefly in self.firefly_array:
-                firefly.move(step, self.obstacles)
             if self.use_integrate_and_fire:
                 self.lco_interactions(step)
 
@@ -92,12 +89,8 @@ class Simulation:
         """Find neighbors in line of sight. Set limited to true to explore varying the FoV.
         Options:
         1. All-to-all adjacency matrix.
-        2. Attention-limited adjacency matrix (draw a hemisphere 90 degrees to either side of direction)
-        3. Obstacle-limited adjacency matrix (obstacles impede attention)
         """
 
-        limited = False
-        distance = False
         neighbors = {}
         for i in range(0, len(self.firefly_array)):
             ff_i = self.firefly_array[i]
@@ -108,31 +101,8 @@ class Simulation:
                     continue
                 else:
                     ff_j = self.firefly_array[j]
-                    if self.obstacles:
-                        skip_dist = self.evaluate_obstacles(ff_i, ff_j, step)
-                        if skip_dist:
-                            continue
-                        else:
-                            if ff_j.flashed_at_this_step[step - 1]:
-                                neighbors[ff_i.number].append(ff_j)
-                    elif distance:
-                        d = (ff_i.positionx[step] - ff_j.positionx[step]) ** 2 + (ff_i.positiony[step]- ff_j.positiony[step]) ** 2
-                        if ff_j.flashed_at_this_step[step - 1]:
-                            neighbors[ff_i.number].append((ff_j, d))
-
-                    elif limited:
-                        i_direction = ff_i.direction[step]
-                        i_right_range = i_direction + (math.pi / 2)
-                        i_left_range = i_direction - (math.pi / 2)
-                        a = [ff_i.positionx[step], ff_i.positiony[step]]
-                        b = [ff_j.positionx[step], ff_j.positiony[step]]
-
-                        if i_left_range < math.atan2(np.linalg.norm(np.cross(a, b)), np.dot(a, b)) < i_right_range:
-                            if ff_j.flashed_at_this_step[step - 1]:
-                                neighbors[ff_i.number].append(ff_j)
-                    else:
-                        if ff_j.flashed_at_this_step[step - 1]:
-                            neighbors[ff_i.number].append(ff_j)
+                    if ff_j.flashed_at_this_step[step - 1]:
+                        neighbors[ff_i.number].append(ff_j)
 
         return neighbors
 
@@ -145,7 +115,7 @@ class Simulation:
             beta_addition = 0
             if neighbors_of_i:
                 for ff_j in neighbors_of_i:
-                    beta_addition += ff_i.beta / len(self.firefly_array) * (1 - ff_j.is_charging)
+                    beta_addition += (ff_i.beta * (1 - ff_j.is_charging))
 
             voltage_at_step = ff_i.voltage_instantaneous[step - 1] + (dvt + (ff_i.sign * beta_addition))
             ff_i.voltage_instantaneous[step] = min([ff_i.discharging_threshold, voltage_at_step])
@@ -236,102 +206,6 @@ class Simulation:
                 end
         )
         return save_string
-
-    def plot_bursts(self, now, instance, write_gif=False, show_gif=False, shared_ax=None, last_highest=0):
-        """Plot the flash bursts over time"""
-        assert self.has_run, "Plot cannot render until the simulation has been run!"
-        plt.style.use('seaborn-pastel')
-        retval = {}
-
-        if self.use_obstacles:
-            color = 'green'
-            label = 'No adoption of fastest'
-        else:
-            color = 'blue'
-            label = 'Adoption of fastest'
-        if not shared_ax:
-            ax = plt.axes(xlim=(0, self.steps), ylim=(0, self.total_agents))
-            bursts_at_each_timestep = self.get_burst_data()
-            # bursts_at_each_timestep = self.get_burst_data_epsilon()
-            xs = [(t * self.timestepsize) for t in list(bursts_at_each_timestep.keys())]
-            ax.plot(xs, list(bursts_at_each_timestep.values()),
-                    label=label, color='steelblue', lw=1)
-            retval = dict(zip(xs, list(bursts_at_each_timestep.values())))
-            ax.set_xlim(0, 300)
-            ax.set_xlabel('T[s]')
-            ax.set_ylim([0.0, 20])
-            ax.set_ylabel('Number of flashes')
-            plt.title('Time series {}ff'.format(self.total_agents))
-            save_string = self.set_save_string('flashplot_no_refrac_{}'.format(instance), now, path='simulation_results/')
-
-            if write_gif:
-                plt.savefig(save_string)
-                #plt.close()
-        else:
-
-            bursts_at_each_timestep = self.get_burst_data()
-            shared_ax.plot(list(bursts_at_each_timestep.keys()), list(bursts_at_each_timestep.values()),
-                           label=label, color=color)
-
-        if not shared_ax:
-            save_string = self.set_save_string('flashplot_{}'.format(instance), now, path='simulation_results/')
-
-            if write_gif:
-                plt.savefig(save_string)
-                plt.close()
-            if show_gif:
-                plt.show()
-        return retval
-
-    def raster(self):
-        colormap = cm.get_cmap('plasma', len(self.firefly_array))
-        fig, ax = plt.subplots()
-        for i, ff in enumerate(self.firefly_array):
-            xs = [x * self.timestepsize for x, y in enumerate(ff._get_flashed_at_this_step())]
-            ax.plot(xs, [int(f) + i for f in ff._get_flashed_at_this_step()], color=colormap.colors[i])
-        ax.set_title(self.beta)
-
-    def combined_raster(self):
-        fig, ax = plt.subplots()
-        xs = [x * self.timestepsize for x, y in enumerate(self.firefly_array[0]._get_flashed_at_this_step())]
-        ys = []
-        firefly_flashes = {}
-        for i,ff in enumerate(self.firefly_array):
-            firefly_flashes[i] = ff._get_flashed_at_this_step()
-        for step in range(self.steps):
-            num = 0
-            for i,_ in enumerate(self.firefly_array):
-                num += firefly_flashes[i][step]
-            if num > 1:
-                ys.append(num)
-            else:
-                ys.append(0)
-        ax.plot(xs, ys)
-        ax.set_title(self.beta)
-        plt.show()
-
-    def voltage_raster(self):
-        if len(self.firefly_array) == 2:
-            colors = ['black', 'grey']
-            fig, ax = plt.subplots()
-            for i, ff in enumerate(self.firefly_array):
-                xs = [x * self.timestepsize for x, y in enumerate(ff.voltage_instantaneous)]
-                ax.plot(xs, [f for f in ff.voltage_instantaneous], color=colors[i])
-        else:
-            colormap = cm.get_cmap('plasma', len(self.firefly_array))
-            fig, ax = plt.subplots()
-            for i, ff in enumerate(self.firefly_array):
-                xs = [x * self.timestepsize for x, y in enumerate(ff.voltage_instantaneous)]
-                ax.plot(xs, [f + i for f in ff.voltage_instantaneous], color=colormap.colors[i])
-
-    def voltage_flash_raster(self):
-        colormap = cm.get_cmap('plasma', 20 )#len(self.firefly_array))
-        fig, ax = plt.subplots()
-        for i, ff in enumerate(self.firefly_array):
-            xs = [x * self.timestepsize for x, y in enumerate(ff.voltage_instantaneous)]
-            x_s = [x * self.timestepsize for x, y in enumerate(ff._get_flashed_at_this_step())]
-            ax.plot(xs, [f + i for f in ff.voltage_instantaneous], color=colormap.colors[i])
-            ax.plot(x_s, [int(f) + i for f in ff._get_flashed_at_this_step()], color=colormap.colors[i], alpha=0.5)
 
     def calc_interburst_distribution(self):
         """Calculate the distribution of interburst intervals for all individuals in a simulation.
@@ -441,61 +315,6 @@ class Simulation:
             cid = np.array(_collective_interburst_distribution)
 
             return cid
-
-    def peak_variances(self, thresh):
-        """Finds peaks and the variances of the burst regions around them.
-        :returns dict of peak locations
-        :returns dict of peak heights
-        :returns int of step of last tallest peak
-        :returns dict of variances"""
-        _prominences = {
-            1: 1.0,
-            5: 2.0,
-            10: 3.0,
-            15: 4.0,
-            20: 5.0
-        }
-        _x = self.get_burst_data()
-        try:
-            peaks_of_x = find_peaks(list(_x.values())[thresh:],
-                                    height=2.0, # prominence_threshold,
-                                    distance=50
-                                    )
-            if len(peaks_of_x[0]) < 5:
-                raise RuntimeError('Not enough peaks')
-        except RuntimeError:
-            try:
-                peaks_of_x = find_peaks(list(_x.values())[thresh:],
-                                        prominence=2.0,
-                                        distance=50
-                                        )
-                if len(peaks_of_x[0]) < 5:
-                    raise RuntimeError('Not enough peaks')
-            except RuntimeError:
-                peaks_of_x = find_peaks(list(_x.values())[thresh:],
-                                        prominence=1.0,
-                                        distance=50
-                                        )
-
-        peaks = [peak * self.timestepsize for peak in peaks_of_x[0]]
-        try:
-            peak_heights = [peak for peak in peaks_of_x[1]['peak_heights']]
-        except KeyError:
-            peak_heights = [peak for peak in peaks_of_x[1]['prominences']]
-        mids = [(peaks[i + 1] + peaks[i]) / 2 for i in range(len(peaks) - 1)]
-        all_flashes = []
-        for ff in self.firefly_array:
-            all_flashes.extend([i for i, val in enumerate(ff.flashed_at_this_step[thresh:]) if val])
-        all_flashes = sorted(all_flashes)
-        variances = {}
-        for i in range(len(mids) - 1):
-            variance_bucket = [f for f in all_flashes if mids[i] <= f * self.timestepsize < mids[i + 1]]
-            variances[i] = math.sqrt(np.var(variance_bucket))
-        last_high_step = 0
-        for e in variances.keys():
-            if variances[e] > 30:
-                last_high_step = mids[e] * 10
-        return peaks, peak_heights, last_high_step, variances
 
     def get_burst_data(self):
         """Male bursts.
