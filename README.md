@@ -1,7 +1,7 @@
 # Emergent Periodicity in Fireflies
 
 ## Overview:
-Individual fireflies show no periodicity in their flash pattern emission, drawing instead from a wide distribution of inter-flash interval timings to produce flashes. When in a collective, however, fireflies influence each other to change their flash timings, eventually reaching a steady state of synchronicity and, impressively, periodicity in their group level flash patterns. The code found here implements the theory presented in https://www.biorxiv.org/content/10.1101/2022.03.09.483608v1.full in an agent-based model, suggesting their interactions may follow a simple integrate-and-fire framework where flashes excite neighbors to flash faster than they would normally.
+Individual fireflies show no periodicity in their flash pattern emission, drawing instead from a wide distribution of inter-flash interval timings to produce flashes. When in a collective, however, fireflies influence each other to change their flash timings, eventually reaching a steady state of synchronicity and, impressively, periodicity in their group level flash patterns. The code found here implements the theory presented in https://doi.org/10.7554/eLife.78908 in an agent-based model, suggesting their interactions may follow a simple integrate-and-fire framework where flashes excite neighbors to flash faster than they would normally.
 
 ## Repository structure:
 Simulation.py and Firefly.py are objects used by run.py to instantiate and carry out the logic of the simulation. simulation_helpers.py contains a few helper functions for orchestration and extracting values from the data files mentioned below.
